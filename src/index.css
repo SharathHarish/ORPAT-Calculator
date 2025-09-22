@@ -1,0 +1,90 @@
+body {
+  margin: 0;
+  padding: 20px;
+background-image: url('images/desk3.jpg'); /* path to your image */
+  background-repeat: no-repeat; /* Prevent tiling */
+  background-size: cover;       /* Cover the entire area */
+  background-position: center;  /* Center the image */
+  background-attachment: fixed;
+}
+
+.display {
+  margin: 0;
+  padding: 20px;
+background-image: url('images/desk3.jpg'); /* path to your image */
+  background-repeat: no-repeat; /* Prevent tiling */
+  background-size: cover;       /* Cover the entire area */
+  background-position: center;  /* Center the image */
+  background-attachment: fixed;
+}
+.App {
+  max-width: 400px;
+  grid-column: 5; /* left column */
+  margin-left: 25%;
+  background:silver;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.calculator-buttons button {
+
+  background:silver;
+
+}
+
+.digit-btn {
+  padding: 15px;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: black; /* white text */
+  background: linear-gradient(145deg, #2a2a2a, #1a1a1a); /* metallic dark */
+  box-shadow: 3px 3px 8px #111, -3px -3px 8px #333;
+  transition: all 0.2s ease;
+}
+
+.digit-btn:hover {
+  background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+}
+
+/* Operator Buttons */
+.operator-btn {
+  padding: 15px;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: black;
+  background: linear-gradient(145deg, #ff8c00, #ff7000); /* metallic orange */
+  box-shadow: 3px 3px 8px #111, -3px -3px 8px #333;
+  transition: all 0.2s ease;
+}
+
+.operator-btn:hover {
+  background: linear-gradient(145deg, #ff7000, #ff8c00);
+}
+
+/* Special Button (Square root) */
+.special-btn {
+  padding: 15px;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: black;
+  background: linear-gradient(145deg, #0077ff, #0055cc); /* metallic blue */
+  box-shadow: 3px 3px 8px #111, -3px -3px 8px #333;
+  transition: all 0.2s ease;
+}
+
+.special-btn:hover {
+  background: linear-gradient(145deg, #0055cc, #0077ff);
+}
+
+/* Button Press Effect */
+button:active {
+  transform: translateY(2px);
+  box-shadow: inset 2px 2px 5px #111, inset -2px -2px 5px #333;
+}
