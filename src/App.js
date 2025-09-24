@@ -1,119 +1,148 @@
 import { useState } from "react";
+import { evaluate } from "mathjs";
 import "./App.css";
 
 function App() {
+  const [expression, setExpression] = useState(""); // full expression
   const [result, setResult] = useState("0");
-  const [prevNumber, setPrevNumber] = useState(null);
-  const [operator, setOperator] = useState(null);
-  const [waitingForNewNumber, setWaitingForNewNumber] = useState(false);
 
-  // Append digit or "00"
-  const appendDigit = (digit) => (e) => {
-    e.preventDefault();
-    setResult((prev) => {
-      if (prev === "0" || waitingForNewNumber) {
-        setWaitingForNewNumber(false);
-        return digit;
-      }
-      return prev + digit;
-    });
+  // Append digit, dot, or parentheses
+  const appendCharacter = (char) => () => {
+    const parts = expression.split(/[\+\-\x\/\%\(\)]/);
+    const lastPart = parts[parts.length - 1];
+
+    if (char === "." && lastPart.includes(".")) return; // prevent multiple dots in a number
+    if (expression.length >= 30) return; // max expression length
+
+    setExpression((prev) => prev + char);
+    setResult((prev) => (prev === "0" ? char : prev + char));
   };
 
   // Operator click
-  const handleOperator = (op) => (e) => {
-    e.preventDefault();
-    if (operator && prevNumber !== null) {
-      calculate();
+  const handleOperator = (op) => () => {
+    if (expression === "") return; // cannot start with operator
+    const lastChar = expression.slice(-1);
+
+    if ("+-*/%".includes(lastChar)) {
+      setExpression(expression.slice(0, -1) + op); // replace consecutive operators
     } else {
-      setPrevNumber(Number(result));
+      setExpression(expression + op);
     }
-    setOperator(op);
-    setWaitingForNewNumber(true);
+    setResult(op);
   };
 
-  // Equals / calculate
+  // Calculate result
   const calculate = () => {
-    if (operator && prevNumber !== null) {
-      const current = Number(result);
-      let computation = 0;
+    if (expression === "") return;
+    try {
+      const computation = evaluate(expression);
 
-      switch (operator) {
-        case "+":
-          computation = prevNumber + current;
-          break;
-        case "-":
-          computation = prevNumber - current;
-          break;
-        case "*":
-          computation = prevNumber * current;
-          break;
-        case "/":
-          if (current === 0) {
-            alert("Cannot divide by zero!");
-            return;
-          }
-          computation = prevNumber / current;
-          break;
-        case "%":
-          computation = prevNumber % current;
-          break;
-        default:
-          break;
+      if (!isFinite(computation)) {
+        setResult("Error: Division by zero");
+        setExpression("");
+        return;
       }
 
-      setResult(String(computation));
-      setPrevNumber(null);
-      setOperator(null);
+      let display = String(computation);
+      if (display.length > 10) display = display.slice(0, 10); // limit to 10 digits
+
+      setResult(display);
+      setExpression(display); // allow chaining
+    } catch (err) {
+      setResult("Error: Invalid Expression");
+      setExpression("");
+      console.error(err);
     }
   };
 
   // Square root
-  const sqrt = (e) => {
-    e.preventDefault();
-    const num = Number(result);
-    if (num < 0) {
-      alert("Cannot take square root of negative number!");
-      return;
+  const sqrt = () => {
+    try {
+      const val = evaluate(expression || result);
+      if (val < 0) {
+        setResult("Error: Negative sqrt");
+        setExpression("");
+        return;
+      }
+
+      let sqrtVal = Math.sqrt(val);
+      let display = String(sqrtVal);
+      if (display.length > 10) display = display.slice(0, 10); // limit to 10 digits
+
+      setResult(display);
+      setExpression(display);
+    } catch {
+      setResult("Error: Invalid Expression");
+      setExpression("");
     }
-    setResult(String(Math.sqrt(num)));
   };
 
   // Reset calculator
-  const resetResult = (e) => {
-    e.preventDefault();
+  const reset = () => {
+    setExpression("");
     setResult("0");
-    setPrevNumber(null);
-    setOperator(null);
-    setWaitingForNewNumber(false);
+  };
+
+  // Clear last character
+  const clearLast = () => {
+    if (expression.length <= 1) {
+      setExpression("");
+      setResult("0");
+    } else {
+      const newExpr = expression.slice(0, -1);
+      setExpression(newExpr);
+      setResult(newExpr.slice(-1));
+    }
+  };
+
+  // Manual input
+  const handleManualInput = (e) => {
+    let val = e.target.value;
+    if (/^[0-9+\-*/%().]*$/.test(val) && val.length <= 30) {
+      setExpression(val);
+      setResult(val.slice(-1) || "0");
+    }
   };
 
   return (
     <div className="App">
-      <h3>3rd edition</h3>
-      <h2>ORPAT</h2>
-      <h2>OT-512GT</h2>
-       <h3>CALCULATOR</h3>
-      <p className="display">{result}</p>
-         <h4>Indian Digit Separator</h4>
+      <div className="row">
+        <h2 className="orpat">ORPAT</h2>
+        <div className="right-side">
+          <h2 className="model">OT-512GT</h2>
+          <h4 className="calc">CALCULATOR</h4>
+        </div>
+      </div>
+
+      {/* Display */}
+      <input
+        className="display"
+        type="text"
+        value={expression || result}
+        onChange={handleManualInput}
+      />
+
       <div className="calculator-buttons">
         {/* Number Buttons */}
-        {["7","8","9","4","5","6","1","2","3","0","00","."].map((digit) => (
-          <button key={digit} className="digit-btn" onClick={appendDigit(digit)}>
-            {digit}
-          </button>
+        {["7","8","9","4","5","6","1","2","3","0","."].map((digit) => (
+          <button key={digit} onClick={appendCharacter(digit)}>{digit}</button>
         ))}
 
         {/* Operator Buttons */}
         {["+","-","*","/","%"].map((op) => (
-          <button key={op} className="operator-btn" onClick={handleOperator(op)}>
-            {op}
-          </button>
+          <button key={op} onClick={handleOperator(op)}>{op}</button>
+        ))}
+
+        {/* Parentheses */}
+        {["(",")"].map((p) => (
+          <button key={p} onClick={appendCharacter(p)}>{p}</button>
         ))}
 
         {/* Special Buttons */}
-        <button className="special-btn" onClick={sqrt}>√</button>
-        <button className="operator-btn" onClick={calculate}>=</button>
-        <button className="special-btn" onClick={resetResult}>C</button>
+        <button onClick={sqrt}>√</button>
+        <button onClick={calculate}>=</button>
+        <button onClick={reset}>AC</button>
+        <button onClick={clearLast}>C</button>
       </div>
     </div>
   );
